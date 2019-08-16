@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jmu.mapper.ReaderDao">
+	<!-- 是否存在读者 -->
+	<select id="checkReader" parameterType="String" resultType="int">
+		select count(*) from  user where usernum=#{usernum}
+	</select>
+	<!-- 通过账号查找 -->
+	<select id="findReaderById" parameterType="String" resultType="cn.jmu.entity.Reader">
+		select * from reader where rnum=#{usernum}
+	</select>
+
+	<insert id="addReader" parameterType="cn.jmu.entity.Reader" keyProperty="rnum" useGeneratedKeys="true">
+	    insert into Reader(rnum,cnum,rolenum,rcnum,rname,rsex,remail,rstate,roverdue,rlevel) values(#{rnum},#{cnum},0,#{rcnum},#{rname},#{rsex},#{remail},#{rstate},#{roverdue},#{rcnum})
+	</insert>
+
+	<insert id="addCompany" parameterType="cn.jmu.entity.Company" keyProperty="cnum" useGeneratedKeys="true">
+	    insert into Company(cnum,cname,ctel) values(#{cnum},#{cname},#{ctel})
+	</insert>
+
+	<update id="updateReader">
+		update company set cname=#{cname},ctel=#{ctel} where cnum=#{rnum}	;
+		update reader set remail=#{remail} where rnum = #{rnum};
+	</update>
+
+	<select id="listReader" resultType="cn.jmu.entity.ReaderInfo" parameterType="String">
+        select a.*,rolename,usernum,userpwd,cname,ctel,rcname,maxnum
+        from reader a,role b,user c,company d,readerclass e
+        where a.rolenum = b.rolenum and a.rolenum = c.rolenum and a.cnum = d.cnum and a.rcnum = e.rcnum GROUP BY rnum
+	</select>
+
+	<select id="findUserpwd" parameterType="String" resultType="String">
+		select userpwd from user where usernum=#{rnum}
+	</select>
+</mapper>

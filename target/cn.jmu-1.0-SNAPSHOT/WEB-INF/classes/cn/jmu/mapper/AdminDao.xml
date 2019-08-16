@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jmu.mapper.AdminDao">
+    <select id="findAdminById" parameterType="String" resultType="cn.jmu.entity.Admin">
+		select * from admin where lnum=#{usernum}
+	</select>
+
+	<select id="isbookexist" parameterType="cn.jmu.entity.Bookinfo" resultType="int">
+		select count(*) from book where collectionnum = #{collectionnum};
+	</select>
+
+	<select id="insertbooknotexist" parameterType="cn.jmu.entity.Bookinfo">
+		insert into bookdescrip(collectionnum,ccnum,pnum,btnum,ISBN,bname,wordnum,price) values(#{collectionnum},#{ccnum},#{pnum},#{btnum},#{ISBN},#{bname},#{wordnum},#{price});
+		insert into book(bnum,collectionnum,bstate,blnum) values(#{bnum},#{collectionnum},#{bstate},#{blnum});
+		insert into stock(blnum,collectionnum,stocknumtol,instocknum) values(#{blnum},#{collectionnum},1,1);
+		insert into author(aname)values(#{aname});
+	</select>
+
+	<select id="findtowriteinfo" resultType="cn.jmu.entity.Towrite">
+		select author.anum,towrite.rolename
+		from bookdescrip,press,book,towrite,author
+		where bookdescrip.collectionnum=#{collectionnum}
+		and bookdescrip.collectionnum=book.collectionnum
+		and towrite.bnum= book.bnum and bookdescrip.pnum=press.pnum
+		and author.anum=towrite.anum group by anum;
+	</select>
+
+	<update id="updatestock" parameterType="String">
+		update stock set stocknumtol=stocknumtol+1 ,instocknum=instocknum+1 where collectionnum=#{collectionnum};
+	</update>
+
+	<insert id="insertBookexist" parameterType="cn.jmu.entity.Bookinfo">
+		insert into book(bnum,collectionnum,bstate,blnum) values(#{bnum},#{collectionnum},#{bstate},#{blnum});
+		insert into towrite(bnum,anum,rolename) values(#{bnum},#{anum},#{rolename});
+	</insert>
+	<select id="findanumByaname" parameterType="String" resultType="int">
+		select anum from author where aname=#{aname}
+	</select>
+	<insert id="inserttowrite" parameterType="cn.jmu.entity.Bookinfo">
+		insert into towrite(bnum,anum,rolename) values(#{bnum},#{anum},#{rolename});
+	</insert>
+
+	<select id="isfinalBook" resultType="int" parameterType="String">
+		select stocknumtol from stock where collectionnum=#{collectionnum}
+	</select>
+
+	<delete id="deleteBooknotfinal" parameterType="String">
+		delete from book where bnum=#{bnum}
+	</delete>
+
+	<update id="updatestockwhendelete" parameterType="String">
+		update stock set stocknumtol=stocknumtol-1 where collectionnum=#{collectionnum};
+	</update>
+
+	<update id="updateinstocknum" parameterType="String">
+		update stock set instocknum=instocknum-1 where collectionnum=#{collectionnum};
+	</update>
+
+	<delete id="deleteBookfinal" parameterType="cn.jmu.entity.Bookinfo">
+		delete from stock where collectionnum=#{collectionnum};
+		delete from towrite where bnum = #{bnum};
+		delete from book where bnum=#{bnum};
+		delete from bookdescrip where collectionnum=#{collectionnum};
+
+
+	</delete>
+
+	<update id="updateBook" parameterType="cn.jmu.entity.Bookinfo">
+		update bookdescrip set btnum=#{btnum},price=#{price},pnum=#{pnum},ccnum=#{ccnum},bname=#{bname},wordnum=#{wordnum} where collectionnum=#{collectionnum};
+		update book set blnum=#{blnum} where bnum=#{bnum};
+	</update>
+	<select id="existAuthor" parameterType="String" resultType="int">
+		select count(*) from author where aname=#{aname};
+	</select>
+	<select id="findAuthorByname" parameterType="String" resultType="int">
+		select anum from author where aname=#{aname};
+	</select>
+	<insert id="insertAuthor" parameterType="String">
+		insert into author(aname) values(#{aname});
+	</insert>
+	<update id="updatetowrite" parameterType="cn.jmu.entity.Bookinfo">
+		update towrite set anum=#{anum},rolename=#{rolename} where bnum=#{bnum};
+	</update>
+
+	<select id="ifexistreaderfine" parameterType="String" resultType="int">
+		select count(*) from readerfine where rnum=#{rnunm};
+	</select>
+	<delete id="deletereaderfine" parameterType="string">
+		delete from readerfine where rnum=#{rnum};
+	</delete>
+	<delete id="deleteReadernotexit" parameterType="cn.jmu.entity.ReaderInfo">
+		delete from user where usernum=#{rnum};
+		delete from reader where rnum=#{rnum};
+		delete from company where cnum =#{rnum};
+		delete from borrow where rnum=#{rnum};
+	</delete>
+
+
+	<update id="updateReader" parameterType="cn.jmu.entity.ReaderInfo">
+		update Reader set remail=#{remail},rcnum=#{rcnum},rsex=#{rsex},rname=#{rname} where rnum=#{rnum};
+		update company set cname=#{cname},ctel=#{ctel} where cnum in(select cnum from reader where rnum=#{rnum});
+	</update>
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/controller/LoginController.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/entity/Reader.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/entity/ReaderClass.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/entity/Role.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/entity/User.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/cn/jmu/mapper/ReaderDao.java" charset="GBK" />
+  </component>
+</project>

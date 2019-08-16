@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jmu.mapper.UserDao">
+
+	<insert id="addUser" parameterType="cn.jmu.entity.User" keyProperty="usernum" useGeneratedKeys="true">
+	    insert into user(usernum,userpwd,rolenum) values(#{usernum},#{userpwd},0)
+	</insert>
+
+	<select id="login" parameterType="cn.jmu.entity.User" resultType="cn.jmu.entity.User">
+		select * from user where usernum=#{usernum} and userpwd=#{userpwd} and rolenum=#{rolenum}
+	</select>
+</mapper>

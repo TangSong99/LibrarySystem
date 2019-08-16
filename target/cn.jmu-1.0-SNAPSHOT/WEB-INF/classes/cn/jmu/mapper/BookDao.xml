@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jmu.mapper.BookDao">
+    <select id="listAllBook" resultType="cn.jmu.entity.Bookinfo" parameterType="cn.jmu.entity.PageBean">
+        select a.*,b.ISBN,b.bname,b.wordnum,b.price, c.*,d.*,e.*
+        from book a,bookdescrip b,chineseclass c,borrowtype d,press e
+        where a.collectionnum=b.collectionnum and b.ccnum=c.ccnum and b.btnum=d.btnum and b.pnum = e.pnum
+        <if test="bname !=null and bname!=''">
+        and b.bname like '%${bname}%'
+        </if>
+        <if test="ccnum!=null and ccnum!=''">
+        and b.ccnum = #{ccnum}
+        </if>
+        group by blnum,b.ISBN
+        <if test="currentPage!=null and currentPage!=''">
+            limit #{index}, #{pageSize}
+        </if>
+    </select>
+
+    <!-- 查询条数 -->
+    <select id="bookCount" parameterType="cn.jmu.entity.PageBean" resultType="Integer">
+        select COUNT(distinct ISBN,blnum) FROM book a,bookdescrip b,chineseclass c
+        where a.collectionnum=b.collectionnum and b.ccnum=c.ccnum
+        <if test="bname!=null and bname!=''">
+            and b.bname like '%${bname}%'
+        </if>
+        <if test="ccnum!=null and ccnum!=''">
+            and b.ccnum = #{ccnum}
+        </if>
+    </select>
+
+    <select id="findAnum" parameterType="cn.jmu.entity.Bookinfo" resultType="int">
+        select anum from towrite where bnum=#{bnum}
+    </select>
+
+    <select id="findAname" parameterType="cn.jmu.entity.Bookinfo" resultType="String">
+        select aname from author where anum = (select anum from towrite where bnum=#{bnum})
+    </select>
+
+    <select id="findRolename" parameterType="cn.jmu.entity.Bookinfo" resultType="String">
+        select rolename from towrite where bnum=#{bnum}
+    </select>
+
+    <select id="findInstocknum" parameterType="cn.jmu.entity.Bookinfo" resultType="int">
+        select instocknum from stock where collectionnum = #{collectionnum}
+    </select>
+
+    <select id="listChineseClass" resultType="cn.jmu.entity.ChineseClass">
+        select * from chineseclass
+    </select>
+
+    <select id="findBlname" resultType="String" parameterType="String">
+        select blname from branchlibraries where blnum = #{blnum}
+    </select>
+
+    <update id="updateBookType" parameterType="cn.jmu.entity.ChineseClass">
+        update chineseclass set ccexplain = #{ccexplain} where ccnum=#{ccnum}
+    </update>
+
+    <delete id="delBookType" parameterType="cn.jmu.entity.ChineseClass">
+        delete from chineseclass where ccnum=#{ccnum}
+    </delete>
+
+    <insert id="addBookType" parameterType="cn.jmu.entity.ChineseClass">
+        insert into chineseclass(ccnum) values(#{ccnum})
+    </insert>
+
+    <select id="listAllBook2" resultType="cn.jmu.entity.Bookinfo" parameterType="cn.jmu.entity.PageBean">
+        select a.*,b.ISBN,b.bname,b.wordnum,b.price, c.*,d.*,e.*
+        from book a,bookdescrip b,chineseclass c,borrowtype d,press e
+        where a.collectionnum=b.collectionnum and b.ccnum=c.ccnum and b.btnum=d.btnum and b.pnum = e.pnum
+        <if test="bname !=null and bname!=''">
+            and b.bname like '%${bname}%'
+        </if>
+        <if test="ccnum!=null and ccnum!=''">
+            and b.ccnum = #{ccnum}
+        </if>
+        <if test="currentPage!=null and currentPage!=''">
+            limit #{index}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="bookCount2" parameterType="cn.jmu.entity.PageBean" resultType="Integer">
+        select COUNT(bnum) FROM book a,bookdescrip b,chineseclass c
+        where a.collectionnum=b.collectionnum and b.ccnum=c.ccnum
+        <if test="bname!=null and bname!=''">
+            and b.bname like '%${bname}%'
+        </if>
+        <if test="ccnum!=null and ccnum!=''">
+            and b.ccnum = #{ccnum}
+        </if>
+    </select>
+
+    <select id="listPress" resultType="cn.jmu.entity.Press">
+        select * from Press
+    </select>
+
+    <select id="listBranchLibraries" resultType="cn.jmu.entity.BranchLibraries">
+        select * from BranchLibraries
+    </select>
+
+    <select id="listBorrowType" resultType="cn.jmu.entity.BorrowType">
+        select * from BorrowType
+    </select>
+
+<!--    <update id="updateBook">-->
+
+<!--    </update>-->
+</mapper>

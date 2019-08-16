@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.jmu.mapper.BorrowDao">
+    <select id="AllReaderInfo" parameterType="String" resultType="cn.jmu.entity.ReaderInfo">
+        select a.*,rolename,usernum,userpwd,cname,ctel,rcname,maxnum
+        from reader a,role b,user c,company d,readerclass e
+        where a.rolenum = b.rolenum and a.rolenum = c.rolenum and a.cnum = d.cnum and a.rcnum = e.rcnum  and rnum = #{rnum} GROUP BY rnum
+    </select>
+
+    <select id="isoverdue" parameterType="String" resultType="int">
+        select count(*) from borrow where rnum = #{rnum}  and datediff(CURDATE(), edate) &gt;= 0
+    </select>
+
+    <update id="updateBorrow">
+        REPLACE INTO readerfine(rnum,rfmoney,reason,bnum)
+        SELECT rnum,datediff(CURDATE(), edate)*0.2,'逾期' ,bnum from borrow where datediff(CURDATE(), edate) &gt;= 0;
+    </update>
+
+    <update id="updateReader">
+        UPDATE reader RIGHT JOIN borrow on reader.rnum = borrow.rnum set roverdue = 1  where datediff(CURDATE(), edate) &gt;= 0
+    </update>
+
+    <select id="isoutofStock" parameterType="cn.jmu.entity.Bookinfo" resultType="int">
+        SELECT count(*) from bookdescrip,book where ISBN=#{ISBN} and blnum = #{blnum} and bookdescrip.collectionnum = book.collectionnum
+    </select>
+
+    <select id="getBorrownum" parameterType="String" resultType="int">
+        SELECT count(*) from borrow where rnum = #{rnum}
+    </select>
+
+    <select id="findBorrowbnum" resultType="String">
+        select bnum from book,bookdescrip where book.collectionnum = bookdescrip.collectionnum and book.bstate = 0 and ISBN=#{isbn} and blnum=#{blnum}
+        ORDER BY bnum LIMIT 1
+    </select>
+
+    <select id="findBorrowSnum" resultType="String">
+        SELECT snum from semester where datediff(CURDATE(), bdate) &gt;= 0 and datediff(CURDATE(), edate) &lt;= 0
+    </select>
+
+    <select id="findBorrowEdate" parameterType="int" resultType="Date">
+        select date_add(CURDATE(),interval #{brdate} day) from semester where datediff(date_add(CURDATE(),interval #{brdate} day), bdate) &gt;= 0 and datediff(date_add(CURDATE(),interval #{brdate} day), edate) &lt;= 0
+    </select>
+
+    <select id="findBorrowBrdate" resultType="int">
+        SELECT brdate from borrowrequire where rcnum = #{rcnum} and btnum = #{btnum}
+    </select>
+
+    <select id="setBorrowEdate" resultType="Date">
+        select date_add(edate,interval #{holidays} day) from semester where snum=#{snum}
+    </select>
+
+    <update id="reduceStock">
+        UPDATE stock set instocknum = instocknum-1 where blnum=#{blnum} and collectionnum= #{collectionnum}
+    </update>
+
+    <insert id="borrowBook">
+        INSERT INTO borrow(rnum,bnum,snum,bdate,edate,restate,brstate)
+        VALUES (#{rnum},#{bnum},#{snum},CURDATE(),#{edate},1,1)
+    </insert>
+
+    <update id="borrowBstate" parameterType="String">
+        UPDATE book set bstate=1 where bnum=#{bnum}
+    </update>
+
+    <!-- 查询条数 -->
+    <select id="borrowCount" parameterType="cn.jmu.entity.PageBean" resultType="int">
+        select count(*) from borrow where rnum=#{rnum}
+        <if test="brstate ==1 or brstate ==0 ">
+            and brstate =#{brstate}
+        </if>
+    </select>
+
+    <select id="listDisBackBook" parameterType="cn.jmu.entity.PageBean" resultType="cn.jmu.entity.BorrowInfo">
+        select a.*,b.bstate,c.collectionnum,c.bname,d.blnum
+        from borrow a,book b,bookdescrip c,branchlibraries d
+        where a.bnum=b.bnum and b.collectionnum=c.collectionnum and b.blnum = d.blnum and rnum=#{rnum}
+        <if test="brstate==1 or brstate==0">
+            and brstate=#{brstate}
+        </if>
+    </select>
+
+    <select id="findBorrowRfmoney" parameterType="cn.jmu.entity.BorrowInfo" resultType="Double">
+        SELECT rfmoney from readerfine where rnum =#{rnum} and bnum =#{bnum}
+    </select>
+
+    <select id="findBorrowReason" parameterType="cn.jmu.entity.BorrowInfo" resultType="String">
+        SELECT reason from readerfine where rnum =#{rnum} and bnum =#{bnum}
+    </select>
+
+    <update id="backBook">
+        update borrow set brstate=0 where rnum=#{rnum} and bnum=#{bnum};
+        update book set bstate = 0 where bnum=#{bnum};
+        UPDATE stock set instocknum=instocknum+1 where collectionnum = #{collectionnum};
+        update reader set roverdue=0 where rnum=#{rnum};
+    </update>
+
+    <delete id="deleteReaderfine">
+        delete from readerfine where rnum=#{rnum} and bnum=#{bnum}
+    </delete>
+
+    <select id="findBorrowBlname" parameterType="String" resultType="String">
+        select blname from branchLibraries where blnum = #{blnum}
+    </select>
+
+    <select id="findBorrowRestate" parameterType="String" resultType="int">
+        select restate from borrow where bnum = #{bnum} and brstate=1 and rnum=#{rnum}
+    </select>
+
+    <select id="findBorrowBrdate2" resultType="int">
+        SELECT brdate from borrowrequire where rcnum = #{rcnum} and btnum =(
+        select btnum from borrowtype where btnum =
+        (SELECT btnum from bookdescrip where collectionnum = #{collectionnum}))
+    </select>
+
+    <select id="findBorrowEdate2" resultType="Date">
+        select edate from borrow where bnum = #{bnum} and rnum=#{rnum}
+    </select>
+
+    <update id="updateEdate">
+        update borrow set edate=DATE_ADD(#{edate},interval #{brdate} day), restate=0 where bnum = #{bnum}
+    </update>
+
+    <select id="listDisBackBook2" parameterType="cn.jmu.entity.PageBean" resultType="cn.jmu.entity.BorrowInfo">
+        select a.*,b.bstate,c.collectionnum,c.bname,d.blnum
+        from borrow a,book b,bookdescrip c,branchlibraries d
+        where a.bnum=b.bnum and b.collectionnum=c.collectionnum and b.blnum = d.blnum
+        <if test="brstate==1 or brstate==0">
+            and brstate=#{brstate}
+        </if>
+    </select>
+
+    <select id="borrowCount2" parameterType="cn.jmu.entity.PageBean" resultType="int">
+        select count(*) from borrow where 1=1
+        <if test="brstate ==1 or brstate ==0 ">
+            and brstate =#{brstate}
+        </if>
+    </select>
+</mapper>
